@@ -33,12 +33,12 @@ else()
     set(TEMP_PATHS ${CMAKE_SOURCE_DIR}/.. ${CMAKE_SOURCE_DIR}/../.. $ENV{HOME}/ $ENV{HOME}/*)
 endif()
     
-find_path(FEBIO_SDK FECore/Archive.h
+find_path(FEBio_SDK FECore/Archive.h
     PATHS ${TEMP_PATHS}
     PATH_SUFFIXES FEBio
     DOC "Path to the FEBio SDK, or git repo.")
     
-if(NOT FEBIO_SDK)
+if(NOT FEBio_SDK)
     if(WIN32)
         set(TEMP_PATHS $ENV{PROGRAMFILES}/* $ENV{HOMEPATH}/*)
     elseif(APPLE)
@@ -47,31 +47,31 @@ if(NOT FEBIO_SDK)
         set(TEMP_PATHS $ENV{HOME}/*)
     endif() 
     
-    find_path(FEBIO_SDK "include/FECore/Archive.h"
+    find_path(FEBio_SDK "include/FECore/Archive.h"
         PATHS ${TEMP_PATHS}
         PATH_SUFFIXES sdk
         DOC "Path to the FEBio SDK, or git repo.")
 endif()
 
-if(NOT FEBIO_SDK)
-    set(FEBIO_SDK "" CACHE PATH "Path to the FEBio SDK, or git repo.")
-    message(FATAL_ERROR "Unable to find path to FEBio SDK or git repo automatically. Please set FEBIO_SDK to the path to your FEBio SDK or git repo.")
+if(NOT FEBio_SDK)
+    set(FEBio_SDK "" CACHE PATH "Path to the FEBio SDK, or git repo.")
+    message(FATAL_ERROR "Unable to find path to FEBio SDK or git repo automatically. Please set FEBio_SDK to the path to your FEBio SDK or git repo.")
 endif()
 
-# Only update the include and lib directories if the FEBIO_SDK path has been changed. 
+# Only update the include and lib directories if the FEBio_SDK path has been changed. 
 if(NOT OLD_SDK)
     set(NEWPATH TRUE)
 else()
-    string(COMPARE NOTEQUAL ${FEBIO_SDK} ${OLD_SDK} NEWPATH)
+    string(COMPARE NOTEQUAL ${FEBio_SDK} ${OLD_SDK} NEWPATH)
 endif()
 
 if(NEWPATH)
     # Is this the SDK?
-    string(REGEX MATCH "sdk" IS_SDK ${FEBIO_SDK})
+    string(REGEX MATCH "sdk" IS_SDK ${FEBio_SDK})
 
     set(LIB_SUFFIXES "")
     if(IS_SDK)
-        set(FEBIO_INC "${FEBIO_SDK}/include" CACHE PATH "Path to FEBio include directory." FORCE)
+        set(FEBIO_INC "${FEBio_SDK}/include" CACHE PATH "Path to FEBio include directory." FORCE)
         
         if(WIN32)
             list(APPEND LIB_SUFFIXES "lib/Release" "lib/Debug" "lib")
@@ -79,7 +79,7 @@ if(NEWPATH)
             list(APPEND LIB_SUFFIXES "lib")
         endif()
     else()
-        set(FEBIO_INC ${FEBIO_SDK} CACHE PATH "Path to FEBio include directory." FORCE)
+        set(FEBIO_INC ${FEBio_SDK} CACHE PATH "Path to FEBio include directory." FORCE)
         
         if(WIN32)
             list(APPEND LIB_SUFFIXES "cmbuild22/lib/Release" "cmbuild/lib/Release" "cmbuild/lib/Debug" "cbuild/lib/Release" "cbuild/lib/Debug" "build/lib/Release" "build/lib/Debug")
@@ -93,7 +93,7 @@ if(NEWPATH)
     # Find lib path
     find_library(FECORE  
         NAMES FECore fecore fecore_gcc64 fecore_lnx64
-        PATHS ${FEBIO_SDK}
+        PATHS ${FEBio_SDK}
         PATH_SUFFIXES ${LIB_SUFFIXES}
         DOC "FEBio library path")
 
@@ -110,7 +110,7 @@ if(NEWPATH)
     endif()
 endif()
 
-set(OLD_SDK ${FEBIO_SDK} CACHE PATH "Don't edit. Old SDK path used to automatically make changes." FORCE)
+set(OLD_SDK ${FEBio_SDK} CACHE PATH "Don't edit. Old SDK path used to automatically make changes." FORCE)
 mark_as_advanced(OLD_SDK)
 
 #### Check if paths are valid and find libs ####
