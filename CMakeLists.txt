@@ -26,19 +26,147 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-# Find FEBio Libs
-set(FEBIO_LIBS "")
-set(FEBIO_DEBUG_LIBS "")
+# Find FEBio SDK or git repo automatically
+if(WIN32)
+	set(TEMP_PATHS ${CMAKE_SOURCE_DIR}/.. ${CMAKE_SOURCE_DIR}/../.. $ENV{HOMEPATH}/ $ENV{HOMEPATH}/source/repos $ENV{HOMEPATH}/*)
+else()
+    set(TEMP_PATHS ${CMAKE_SOURCE_DIR}/.. ${CMAKE_SOURCE_DIR}/../.. $ENV{HOME}/ $ENV{HOME}/*)
+endif()
+    
+find_path(FEBIO_SDK FECore/Archive.h
+    PATHS ${TEMP_PATHS}
+    PATH_SUFFIXES FEBio
+    DOC "Path to the FEBio SDK, or git repo.")
+    
+if(NOT FEBIO_SDK)
+    if(WIN32)
+        set(TEMP_PATHS $ENV{PROGRAMFILES}/* $ENV{HOMEPATH}/*)
+    elseif(APPLE)
+        set(TEMP_PATHS /Applications/* $ENV{HOME}/*)
+    else()
+        set(TEMP_PATHS $ENV{HOME}/*)
+    endif() 
+    
+    find_path(FEBIO_SDK "include/FECore/Archive.h"
+        PATHS ${TEMP_PATHS}
+        PATH_SUFFIXES sdk
+        DOC "Path to the FEBio SDK, or git repo.")
+endif()
 
-foreach(name IN LISTS FEBIO_LIB_NAMES)
-    find_library(TEMP NAMES ${name} PATHS "C:/Users/Steve/source/repos/FEBio/cmbuild22/lib/Release")
-    list(APPEND FEBIO_LIBS ${TEMP})
-    unset(TEMP CACHE)
+if(NOT FEBIO_SDK)
+    set(FEBIO_SDK "" CACHE PATH "Path to the FEBio SDK, or git repo.")
+    message(FATAL_ERROR "Unable to find path to FEBio SDK or git repo automatically. Please set FEBIO_SDK to the path to your FEBio SDK or git repo.")
+endif()
 
-    find_library(TEMP NAMES ${name} PATHS "C:/Users/Steve/source/repos/FEBio/cmbuild22/lib/Debug")
-    list(APPEND FEBIO_DEBUG_LIBS ${TEMP})
-    unset(TEMP CACHE)
-endforeach(name)
+# Only update the include and lib directories if the FEBIO_SDK path has been changed. 
+if(NOT OLD_SDK)
+    set(NEWPATH TRUE)
+else()
+    string(COMPARE NOTEQUAL ${FEBIO_SDK} ${OLD_SDK} NEWPATH)
+endif()
+
+if(NEWPATH)
+    # Is this the SDK?
+    string(REGEX MATCH "sdk" IS_SDK ${FEBIO_SDK})
+
+    set(LIB_SUFFIXES "")
+    if(IS_SDK)
+        set(FEBIO_INC "${FEBIO_SDK}/include" CACHE PATH "Path to FEBio include directory." FORCE)
+        
+        if(WIN32)
+            list(APPEND LIB_SUFFIXES "lib/Release" "lib/Debug" "lib")
+        else()
+            list(APPEND LIB_SUFFIXES "lib")
+        endif()
+    else()
+        set(FEBIO_INC ${FEBIO_SDK} CACHE PATH "Path to FEBio include directory." FORCE)
+        
+        if(WIN32)
+            list(APPEND LIB_SUFFIXES "cmbuild22/lib/Release" "cmbuild/lib/Release" "cmbuild/lib/Debug" "cbuild/lib/Release" "cbuild/lib/Debug" "build/lib/Release" "build/lib/Debug")
+        else()
+            list(APPEND LIB_SUFFIXES "cbuild/lib" "cmbuild/lib" "build/lib" "cbuild/Release/lib" "cmbuild/Release/lib" "build/Release/lib" "cbuild/Debug/lib" "cmbuild/Debug/lib" "build/Debug/lib")
+        endif()
+    endif()
+
+    mark_as_advanced(FEBIO_INC)
+
+    # Find lib path
+    find_library(FECORE  
+        NAMES FECore fecore fecore_gcc64 fecore_lnx64
+        PATHS ${FEBIO_SDK}
+        PATH_SUFFIXES ${LIB_SUFFIXES}
+        DOC "FEBio library path")
+
+    if(FECORE)
+        get_filename_component(FECORE_TEMP ${FECORE} DIRECTORY)
+        set(FEBIO_LIB_DIR ${FECORE_TEMP} CACHE PATH "Path to the FEBio lib directory." FORCE)
+        mark_as_advanced(FEBIO_LIB_DIR)
+        unset(FECORE_TEMP)
+        unset(FECORE CACHE)
+    else()
+        set(FEBIO_LIB_DIR CACHE PATH "Path to the FEBio lib directory." FORCE)
+        message(SEND_ERROR "Unable to find FEBio Library path automatically. Set FEBIO_LIB_DIR.")
+        unset(FECORE CACHE)
+    endif()
+endif()
+
+set(OLD_SDK ${FEBIO_SDK} CACHE PATH "Don't edit. Old SDK path used to automatically make changes." FORCE)
+mark_as_advanced(OLD_SDK)
+
+#### Check if paths are valid and find libs ####
+function(findLib libName libDir libOut)
+    string(TOLOWER ${libName} lname)
+
+    find_library(TEMP 
+        NAMES ${libName} ${lname} ${lname}_gcc64 ${lname}_lnx64 
+        PATHS ${${libDir}} 
+        NO_DEFAULT_PATH)
+
+    if(TEMP)
+        set(${libOut} ${TEMP} PARENT_SCOPE)
+        unset(TEMP CACHE)
+    else()
+        if(WIN32)
+            message(SEND_ERROR "Could not find ${libName}.lib. Check ${libName}.")
+        elseif(APPLE)
+            message(SEND_ERROR "Could not find ${libName}.so, ${libName}.a, or ${libName}.dylib Check ${libDir}.")
+        else()
+            message(SEND_ERROR "Could not find ${libName}.so, or ${libName}.a. Check ${libDir}")
+        endif()
+        unset(TEMP CACHE)
+    endif()
+endfunction()
+
+if (WIN32)
+    set(FEBIO_DEBUG_LIBS "")
+    set(FEBIO_RELEASE_LIBS "")
+
+    foreach(name IN LISTS FEBIO_LIB_NAMES)
+        find_library(TEMP NAMES ${name} 
+            PATHS ${FEBIO_LIB_DIR} PATH_SUFFIXES Debug NO_DEFAULT_PATH)
+        list(APPEND FEBIO_DEBUG_LIBS ${TEMP})
+        unset(TEMP CACHE)
+    endforeach(name)
+
+    foreach(name IN LISTS FEBIO_LIB_NAMES)
+        find_library(TEMP NAMES ${name} 
+            PATHS ${FEBIO_LIB_DIR} PATH_SUFFIXES Release NO_DEFAULT_PATH)
+        list(APPEND FEBIO_RELEASE_LIBS ${TEMP})
+        unset(TEMP CACHE)
+    endforeach(name)
+
+    unset(FEBIO_LIB_NAMES)
+else()
+    set(FEBIO_LIBS "")
+
+    foreach(name IN LISTS FEBIO_LIB_NAMES)
+        findLib(${name} FEBIO_LIB_DIR FEBIO_LIB)
+        list(APPEND FEBIO_LIBS ${FEBIO_LIB})
+        unset(FEBIO_LIB)
+    endforeach(name)
+
+    unset(FEBIO_LIB_NAMES)
+endif()
 
 
 ##### Set definitions and compile options #####
@@ -57,22 +185,26 @@ else()
 endif()
 
 # Set include directory
-include_directories(C:/Users/Steve/source/repos/FEBio)
+include_directories(${FEBIO_INC})
 
 # Add library
-
 file(GLOB HdrFiles "CFDDamageFiber/*.h")
 file(GLOB SrcFiles "CFDDamageFiber/*.cpp")
 
 add_library(CFDDamageFiber SHARED ${HdrFiles} ${SrcFiles})
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT CFDDamageFiber)
+set_property(TARGET CFDDamageFiber PROPERTY AUTOGEN_BUILD_DIR ${CMAKE_BINARY_DIR}/CMakeFiles/AutoGen/CFDDamageFiber_autogen)
 
 # Link FEBio Libraries
-foreach(name IN LISTS FEBIO_LIBS)
-    target_link_libraries(CFDDamageFiber optimized ${name})
-endforeach()
+if (WIN32)
+    foreach(name IN LISTS FEBIO_RELEASE_LIBS)
+        target_link_libraries(CFDDamageFiber optimized ${name})
+    endforeach()
 
-foreach(name IN LISTS FEBIO_DEBUG_LIBS)
-    target_link_libraries(CFDDamageFiber debug ${name})
-endforeach()
+    foreach(name IN LISTS FEBIO_DEBUG_LIBS)
+        target_link_libraries(CFDDamageFiber debug ${name})
+    endforeach()
+else()
+    target_link_libraries(CFDDamageFiber ${FEBIO_LIBS})
+endif()
 

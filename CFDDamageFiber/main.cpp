@@ -3,10 +3,18 @@
 #include <FECore/FECoreKernel.h>
 #include "FECFDDamageFiber.h"
 #include "FECFDDamageFiberPlot.h"
+#include "version.h"
 
 FECORE_EXPORT unsigned int GetSDKVersion()
 {
 	return FE_SDK_VERSION;
+}
+
+FECORE_EXPORT void GetPluginVersion(int& major, int& minor, int& patch)
+{
+	major = VERSION;
+	minor = SUBVERSION;
+	patch = SUBSUBVERSION;
 }
 
 FECORE_EXPORT void PluginInitialize(FECoreKernel& febio)
