@@ -4,24 +4,9 @@
 #include <FEBioMech/FEFiberIntegrationTriangle.h>
 #include <FEBioMech/FEFiberDensityDistribution.h>
 
-bool FEFiberDamageCriterion::Init()
+
+FECFDDamageFiber::Point::Point() : FEFiberMaterialPoint(nullptr)
 {
-	if (FEMaterialProperty::Init() == false) return false;
-
-	FECoreBase* parent = GetParent();
-	if (parent == nullptr) return false;
-
-	m_fiber = parent->ExtractProperty<FEFiberMaterial>(false);
-	if (m_fiber == nullptr) return false;
-
-	return true;
-}
-
-
-FECFDDamageFiber::Point::Point(FECFDDamageFiber* mat) : FEFiberMaterialPoint(nullptr), m_pmat(mat)
-{
-	d = vec3d(1, 0, 0);
-	Ad = 0.0;
 }
 
 void FECFDDamageFiber::Point::Init()
@@ -31,35 +16,7 @@ void FECFDDamageFiber::Point::Init()
 
 void FECFDDamageFiber::Point::Update(const FETimeInfo& ti)
 {
-}
-
-//====================================================================================
-double FEFiberStretchCriterion::Criterion(FEMaterialPoint& mp, const vec3d& a0)
-{
-	FEElasticMaterialPoint& ep = *mp.ExtractData<FEElasticMaterialPoint>();
-	FECFDDamageFiber::Point& fp = *mp.ExtractData<FECFDDamageFiber::Point>();
-
-	mat3d& F = ep.m_F;
-	vec3d a = F * a0;
-	double l = a.unit();
-
-	return l;
-}
-
-//====================================================================================
-double FEFiberStressCriterion::Criterion(FEMaterialPoint& mp, const vec3d& a0)
-{
-	FEElasticMaterialPoint& ep = *mp.ExtractData<FEElasticMaterialPoint>();
-	FECFDDamageFiber::Point& fp = *mp.ExtractData<FECFDDamageFiber::Point>();
-
-	mat3d& F = ep.m_F;
-	vec3d a = F * a0;
-	double l = a.unit();
-
-	mat3ds sigma = m_fiber->FiberStress(mp, a0);
-	double s = a * (sigma * a);
-
-	return s;
+	m_Dp = m_D;
 }
 
 //====================================================================================
@@ -128,7 +85,7 @@ bool FECFDDamageFiber::Validate()
 
 FEMaterialPointData* FECFDDamageFiber::CreateMaterialPointData()
 {
-	return new FECFDDamageFiber::Point(this);
+	return new FECFDDamageFiber::Point();
 }
 
 mat3ds FECFDDamageFiber::FiberStress(FEMaterialPoint& mp, const vec3d& a0)
@@ -143,11 +100,12 @@ mat3ds FECFDDamageFiber::FiberStress(FEMaterialPoint& mp, const vec3d& a0)
 		if (fp.m_D.empty())
 		{
 			fp.m_D.resize(m_rule->m_nres, 0.0);
+			fp.m_Dp.resize(m_rule->m_nres, 0.0);
 		}
 
 		assert((fp.m_index >= 0) && (fp.m_index < fp.m_D.size()));
-		double& Dn = fp.m_D[fp.m_index];
-		if (D > Dn) Dn = D;
+		double Dn = fp.m_Dp[fp.m_index];
+		if (D > Dn) fp.m_D[fp.m_index] = D;
 		D = Dn;
 	}
 	else if (!fp.m_D.empty())

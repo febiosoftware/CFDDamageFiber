@@ -30,6 +30,5 @@ bool FEPlotCFDFiberDamage::Save(FEDomain& dom, FEDataStream& a)
 
 		a << D;
 	}
-
 	return true;
 }
