@@ -3,7 +3,7 @@
 #include <FEBioMech/FEDamageCDF.h>
 #include "FEFiberDamageCriterion.h"
 
-class FEFiberIntegrationTriangle;
+class FEFiberIntegrationScheme;
 class FEFiberDensityDistribution;
 
 class FEDeltaDamageCDF : public FEDamageCDF
@@ -64,7 +64,7 @@ private:
 	FEDamageCDF* m_cdf;
 
 	FEFiberDensityDistribution* m_R = nullptr;
-	FEFiberIntegrationTriangle* m_rule = nullptr;
+	FEFiberIntegrationScheme* m_rule = nullptr;
 
 	friend class Point;
 

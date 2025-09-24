@@ -27,6 +27,14 @@ public:
 	double Criterion(FEMaterialPoint& mp, const vec3d& a0) override;
 };
 
+// strain-based criterion
+class FEFiberStrainCriterion : public FEFiberDamageCriterion
+{
+public:
+	FEFiberStrainCriterion(FEModel* fem) : FEFiberDamageCriterion(fem) {}
+	double Criterion(FEMaterialPoint& mp, const vec3d& a0) override;
+};
+
 // stress-based criterion
 class FEFiberStressCriterion : public FEFiberDamageCriterion
 {

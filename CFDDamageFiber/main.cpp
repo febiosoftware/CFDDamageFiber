@@ -24,6 +24,7 @@ FECORE_EXPORT void PluginInitialize(FECoreKernel& febio)
 	REGISTER_FECORE_CLASS(FECFDDamageFiber, "cfd damage-fiber");
 
 	REGISTER_FECORE_CLASS(FEFiberStretchCriterion, "fiber stretch");
+	REGISTER_FECORE_CLASS(FEFiberStrainCriterion, "fiber strain");
 	REGISTER_FECORE_CLASS(FEFiberStressCriterion, "fiber stress");
 
 	REGISTER_FECORE_CLASS(FEPlotCFDFiberDamage, "cfd fiber damage");

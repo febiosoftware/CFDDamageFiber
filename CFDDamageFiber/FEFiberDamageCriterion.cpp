@@ -36,6 +36,18 @@ double FEFiberStretchCriterion::Criterion(FEMaterialPoint& mp, const vec3d& a0)
 	return l;
 }
 
+double FEFiberStrainCriterion::Criterion(FEMaterialPoint& mp, const vec3d& a0)
+{
+	FEElasticMaterialPoint& ep = *mp.ExtractData<FEElasticMaterialPoint>();
+	FECFDDamageFiber::Point& fp = *mp.ExtractData<FECFDDamageFiber::Point>();
+
+	mat3d& F = ep.m_F;
+	vec3d a = F * a0;
+	double l = a.unit();
+
+	return l - 1;
+}
+
 double FEFiberStressCriterion::Criterion(FEMaterialPoint& mp, const vec3d& a0)
 {
 	FEElasticMaterialPoint& ep = *mp.ExtractData<FEElasticMaterialPoint>();
