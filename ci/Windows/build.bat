@@ -17,4 +17,5 @@ cd "%BUILD_DIR%"
 msbuild /P:Configuration=Release /P:WarningLevel=0 /m:%PROC% ALL_BUILD.vcxproj
 
 cd "%STARTDIR%"
-exit 0
+
+exit /b %errorlevel%
