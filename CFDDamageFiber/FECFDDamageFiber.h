@@ -56,7 +56,9 @@ public:
 
 	tens4ds FiberTangent(FEMaterialPoint& mp, const vec3d& a);
 
-	double CumulativeDamage(FEMaterialPoint& mp);
+	double AverageDamage(FEMaterialPoint& mp);
+
+	double MaxDamage(FEMaterialPoint& mp);
 
 private:
 	FEFiberMaterial* m_fiber;	// base fiber material

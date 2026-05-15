@@ -146,7 +146,7 @@ double FECFDDamageFiber::FiberStrainEnergyDensity(FEMaterialPoint& mp, const vec
 	return (1 - D)*m_fiber->FiberStrainEnergyDensity(mp, a0);
 }
 
-double FECFDDamageFiber::CumulativeDamage(FEMaterialPoint& mp)
+double FECFDDamageFiber::AverageDamage(FEMaterialPoint& mp)
 {
 	FECFDDamageFiber::Point& fp = *mp.ExtractData<FECFDDamageFiber::Point>();
 
@@ -173,4 +173,20 @@ double FECFDDamageFiber::CumulativeDamage(FEMaterialPoint& mp)
 	}
 
 	return avg;
+}
+
+double FECFDDamageFiber::MaxDamage(FEMaterialPoint& mp)
+{
+	FECFDDamageFiber::Point& fp = *mp.ExtractData<FECFDDamageFiber::Point>();
+
+	vector<double>& D = fp.m_D;
+	if (D.empty()) return 0;
+
+	double maxD = 0;
+	for (size_t i=0; i<D.size(); ++i)
+	{
+		if (D[i] > maxD) maxD = D[i];
+	}
+
+	return maxD;
 }

@@ -1,9 +1,16 @@
 #pragma once
 #include <FECore/FEPlotData.h>
 
-class FEPlotCFDFiberDamage : public FEPlotDomainData
+class FEPlotCFDFiberDamageAvg : public FEPlotDomainData
 {
 public:
-	FEPlotCFDFiberDamage(FEModel* pfem);
+	FEPlotCFDFiberDamageAvg(FEModel* pfem);
+	bool Save(FEDomain& m, FEDataStream& a) override;
+};
+
+class FEPlotCFDFiberDamageMax : public FEPlotDomainData
+{
+public:
+	FEPlotCFDFiberDamageMax(FEModel* pfem);
 	bool Save(FEDomain& m, FEDataStream& a) override;
 };
