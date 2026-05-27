@@ -29,6 +29,8 @@ FECORE_EXPORT void PluginInitialize(FECoreKernel& febio)
 
 	REGISTER_FECORE_CLASS(FEPlotCFDFiberDamageAvg, "avg cfd fiber damage");
 	REGISTER_FECORE_CLASS(FEPlotCFDFiberDamageMax, "max cfd fiber damage");
+	REGISTER_FECORE_CLASS(FEPlotCFDPctFailedFibers, "pct cfd failed fibers");
+	REGISTER_FECORE_CLASS(FEPlotCFDPctDamagedFibers, "pct cfd damaged fibers");
 
 	REGISTER_FECORE_CLASS(FEDeltaDamageCDF, "CDF delta");
 }

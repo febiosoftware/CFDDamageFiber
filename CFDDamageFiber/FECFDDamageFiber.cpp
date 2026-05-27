@@ -190,3 +190,66 @@ double FECFDDamageFiber::MaxDamage(FEMaterialPoint& mp)
 
 	return maxD;
 }
+
+double FECFDDamageFiber::PctFailedFibers(FEMaterialPoint& mp)
+{
+	FECFDDamageFiber::Point& fp = *mp.ExtractData<FECFDDamageFiber::Point>();
+	vector<double>& D = fp.m_D;
+	if (D.empty()) return 0;
+
+	if (m_R == nullptr) return 0.0;
+
+	FEFiberIntegrationSchemeIterator* it = m_rule->GetIterator(&mp);
+	int i = 0;
+	double Rsum = 0;
+	double pct = 0;
+	if (it->IsValid())
+	{
+		do {
+			vec3d& N = it->m_fiber;
+			double R = m_R->FiberDensity(mp, N);
+			Rsum += R * it->m_weight;
+
+			if (D[i] >= 1.0) pct += R * it->m_weight;
+			++i;
+		} while (it->Next());
+
+		while (it->Next());
+		assert(i == D.size());
+		pct /= Rsum;
+	}
+
+	return pct;
+}
+
+double FECFDDamageFiber::PctDamagedFibers(FEMaterialPoint& mp)
+{
+	FECFDDamageFiber::Point& fp = *mp.ExtractData<FECFDDamageFiber::Point>();
+	vector<double>& D = fp.m_D;
+	if (D.empty()) return 0;
+
+	if (m_R == nullptr) return 0.0;
+
+	FEFiberIntegrationSchemeIterator* it = m_rule->GetIterator(&mp);
+	int i = 0;
+	double Rsum = 0;
+	double pct = 0;
+	const double eps = 1e-12;
+	if (it->IsValid())
+	{
+		do {
+			vec3d& N = it->m_fiber;
+			double R = m_R->FiberDensity(mp, N);
+			Rsum += R * it->m_weight;
+
+			if (D[i] > eps) pct += R * it->m_weight;
+			++i;
+		} while (it->Next());
+
+		while (it->Next());
+		assert(i == D.size());
+		pct /= Rsum;
+	}
+
+	return pct;
+}

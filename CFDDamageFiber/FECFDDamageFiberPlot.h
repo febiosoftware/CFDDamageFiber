@@ -14,3 +14,17 @@ public:
 	FEPlotCFDFiberDamageMax(FEModel* pfem);
 	bool Save(FEDomain& m, FEDataStream& a) override;
 };
+
+class FEPlotCFDPctFailedFibers : public FEPlotDomainData
+{
+public:
+	FEPlotCFDPctFailedFibers(FEModel* pfem);
+	bool Save(FEDomain& m, FEDataStream& a) override;
+};
+
+class FEPlotCFDPctDamagedFibers : public FEPlotDomainData
+{
+public:
+	FEPlotCFDPctDamagedFibers(FEModel* pfem);
+	bool Save(FEDomain& m, FEDataStream& a) override;
+};
