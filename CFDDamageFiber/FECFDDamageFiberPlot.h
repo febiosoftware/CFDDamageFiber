@@ -28,3 +28,10 @@ public:
 	FEPlotCFDPctDamagedFibers(FEModel* pfem);
 	bool Save(FEDomain& m, FEDataStream& a) override;
 };
+
+class FEPlotCFDAvgFiberStretch : public FEPlotDomainData
+{
+public:
+	FEPlotCFDAvgFiberStretch(FEModel* pfem);
+	bool Save(FEDomain& m, FEDataStream& a) override;
+};

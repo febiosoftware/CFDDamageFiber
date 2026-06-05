@@ -253,3 +253,41 @@ double FECFDDamageFiber::PctDamagedFibers(FEMaterialPoint& mp)
 
 	return pct;
 }
+
+double FECFDDamageFiber::AvgFiberStretch(FEMaterialPoint& mp)
+{
+	FECFDDamageFiber::Point* fp = mp.ExtractData<FECFDDamageFiber::Point>();
+	if (fp == nullptr) return 0.0;
+
+	FEElasticMaterialPoint* ep = mp.ExtractData<FEElasticMaterialPoint>();
+	if (ep == nullptr) return 0.0;
+
+	if (m_R == nullptr) return 0.0;
+
+	mat3d Q = GetLocalCS(mp);
+	mat3d F = ep->m_F;
+
+	FEFiberIntegrationSchemeIterator* it = m_rule->GetIterator(&mp);
+	double Rsum = 0;
+	double avg = 0;
+	if (it->IsValid())
+	{
+		do {
+			vec3d& N = it->m_fiber;
+			double R = m_R->FiberDensity(mp, N);
+
+			vec3d a0 = Q*N;
+			vec3d a = F * a0;
+			double l = a.norm();
+
+			Rsum += R * it->m_weight;
+			avg += R * l * it->m_weight;
+
+		} while (it->Next());
+
+		while (it->Next());
+		avg /= Rsum;
+	}
+
+	return avg;
+}

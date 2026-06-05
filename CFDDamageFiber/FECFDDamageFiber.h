@@ -65,6 +65,8 @@ public:
 
 	double PctDamagedFibers(FEMaterialPoint& mp);
 
+	double AvgFiberStretch(FEMaterialPoint& mp);
+
 private:
 	FEFiberMaterial* m_fiber;	// base fiber material
 	FEFiberDamageCriterion* m_criterion; // damage criterion
