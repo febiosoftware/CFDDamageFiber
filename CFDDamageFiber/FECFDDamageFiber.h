@@ -57,7 +57,7 @@ public:
 	tens4ds FiberTangent(FEMaterialPoint& mp, const vec3d& a);
 
 public:
-	double AverageDamage(FEMaterialPoint& mp);
+	double AverageDamage(FEMaterialPoint& mp, double minDamage = 0);
 
 	double MaxDamage(FEMaterialPoint& mp);
 

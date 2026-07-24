@@ -146,7 +146,7 @@ double FECFDDamageFiber::FiberStrainEnergyDensity(FEMaterialPoint& mp, const vec
 	return (1 - D)*m_fiber->FiberStrainEnergyDensity(mp, a0);
 }
 
-double FECFDDamageFiber::AverageDamage(FEMaterialPoint& mp)
+double FECFDDamageFiber::AverageDamage(FEMaterialPoint& mp, double minDamage)
 {
 	FECFDDamageFiber::Point& fp = *mp.ExtractData<FECFDDamageFiber::Point>();
 
@@ -163,13 +163,17 @@ double FECFDDamageFiber::AverageDamage(FEMaterialPoint& mp)
 	{
 		do {
 			vec3d& N = it->m_fiber;
-			double R = m_R->FiberDensity(mp, N);
-			Rsum += R*it->m_weight;
-			avg += R * D[i++] * it->m_weight;
+			double Di = D[i++];
+			if (Di >= minDamage)
+			{
+				double R = m_R->FiberDensity(mp, N);
+				Rsum += R*it->m_weight;
+				avg += R * Di * it->m_weight;
+			}
 		}
 		while (it->Next());
 		assert(i == D.size());
-		avg /= Rsum;
+		if (Rsum > 0) avg /= Rsum;
 	}
 
 	return avg;

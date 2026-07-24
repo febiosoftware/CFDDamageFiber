@@ -8,6 +8,13 @@ public:
 	bool Save(FEDomain& m, FEDataStream& a) override;
 };
 
+class FEPlotCFDDamagedFiberDamageAvg : public FEPlotDomainData
+{
+public:
+	FEPlotCFDDamagedFiberDamageAvg(FEModel* pfem);
+	bool Save(FEDomain& m, FEDataStream& a) override;
+};
+
 class FEPlotCFDFiberDamageMax : public FEPlotDomainData
 {
 public:
